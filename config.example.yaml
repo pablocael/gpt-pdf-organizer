@@ -1,4 +1,0 @@
-config:
-  openAiApiKey: "YOUR API KEY"
-  maxNumTokens: 1000
-  gptModelName: "gpt-4"

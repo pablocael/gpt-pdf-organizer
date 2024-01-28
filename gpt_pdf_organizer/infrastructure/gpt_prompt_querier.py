@@ -57,7 +57,7 @@ class GPTPromptQuerier(PromptQuerier):
             ]
         )
 
-        return response.choices[0].message
+        return response.choices[0].message.content
 
     def clamp_text_by_tokens(self, text: str, max_tokens: int) -> Tuple[str, int]:
         """

@@ -3,3 +3,23 @@ config:
   apiKey: "YOUR API KEY HERE"
   maxNumTokens: 1000
   llmModelName: "gpt-4"
+
+  organizer:
+    # Config subfoldersFromAttributes supports "content_type", "author" and "year" in the order they appear.
+    # For instance, "year" and "author" will output to the folder <output_dir>/"year"/"author"/<filename>.extension.
+    # Using "content_type"will output to the folder <output_dir>/books/<filename>.extension 
+    # and <output_dir>/article/<filename>.extension.
+    # An empty list will just output to the output directory without subfolders.
+    # Default is "content_type" if subfoldersFromAttributes is not present in config.
+    subfoldersFromAttributes:
+      - content_type
+    # Config filenameFromAttributes supports "title", "author" and "year" in the order they appear.
+    # For instance, "year" and "author" will output to the file name <author><filename_separator><title>.extension
+    # If empty list or if filenameFromAttributes is not present in the config, the default to will be ["title"].
+    filenameFromAttributes:
+      - title
+
+    # Config filenameAttributeSeparator controls which separator to use to join attributes in the filename.
+    # Default is "-". Supported are any string not containing invalid characters for filenames.
+    filenameAttributeSeparator: "_"
+

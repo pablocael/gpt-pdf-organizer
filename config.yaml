@@ -1,5 +1,5 @@
 config:
-  # env var will have priority over this config for api key
-  openAiApiKey: "YOUR API KEY HERE or set OPENAI_API_KEY env var instead"
+  # OPENAI_API_KEY environment var is also supported and will have priority over apiKey config
+  apiKey: "YOUR API KEY HERE"
   maxNumTokens: 1000
-  gptModelName: "gpt-4"
+  llmModelName: "gpt-4"

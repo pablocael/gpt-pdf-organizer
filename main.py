@@ -2,28 +2,28 @@ import os
 import openai
 import argparse
 
-from gpt_pdf_organizer.utils.config import read_config
-from gpt_pdf_organizer.utils.gpt import query_chatgpt
-from gpt_pdf_organizer.utils.gpt import build_query_from_content
-from gpt_pdf_organizer.utils.pdf import read_first_k_tokens_from_pdf
-from gpt_pdf_organizer.utils.config import GPT_API_KEY
+from gpt_pdf_organizer.app.application import Application
+from gpt_pdf_organizer.infrastructure.gpt_prompt_querier import GPTPromptQuerier
+from gpt_pdf_organizer.utils.config import LLM_MODEL_NAME
 from gpt_pdf_organizer.utils.config import MAX_NUM_TOKENS
+from gpt_pdf_organizer.utils.config import API_KEY
 
 if __name__ == "__main__":
-
-    config = read_config()
-    max_num_tokens = MAX_NUM_TOKENS
-    openai.api_key = GPT_API_KEY
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-path", type=str, required=True)
     parser.add_argument("--output-folder", type=str, required=True)
     args = parser.parse_args()
 
-    extracted_text = read_first_k_tokens_from_pdf(pdf_path=args.input_path, k=max_num_tokens)
-    prompt = build_query_from_content(extracted_text)
-    print("Prompt:", prompt)
+    app = Application(
+        prompt_querier=GPTPromptQuerier({
+            "api_key": API_KEY,
+            "model_name": LLM_MODEL_NAME,
+            "max_tokens": MAX_NUM_TOKENS,
+        })
+    )
 
-    # Query ChatGPT
-    # response = query_chatgpt(prompt)
-    # print("ChatGPT's Response:", response)
+    app.organize(
+        input_path=args.input_path,
+        output_dir=args.output_folder,
+    )

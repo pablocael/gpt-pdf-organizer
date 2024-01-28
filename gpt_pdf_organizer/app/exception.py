@@ -1,0 +1,2 @@
+class FilepathNotSupportedException(Exception):
+    pass

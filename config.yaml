@@ -13,8 +13,12 @@ config:
     # Default is "content_type" if subfoldersFromAttributes is not present in config.
     subfoldersFromAttributes:
       - content_type
-    # Config filenameFromAttributes supports "title", "author" and "year" in the order they appear.
-    # For instance, "year" and "author" will output to the file name <author><filename_separator><title>.extension
+
+    # Config filenameFromAttributes supports "title", "content_type", "author" and "year" in the order they appear.
+    # Content original title attribute will always be used, so if not set, all other attributes will be appended to the left of title.
+    # Using title allows for changing where those attributes will appear.
+    # For instance, "year" and "author" will output to the file name <year><filename_separator><author><filename_separator><title>.extension
+    # For instance, "title", "year" and "author" will output to the file name <title><filename_separator><year><filename_separator><author>.extension
     # If empty list or if filenameFromAttributes is not present in the config, the default to will be ["title"].
     filenameFromAttributes:
       - title

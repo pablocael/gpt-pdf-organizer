@@ -4,16 +4,18 @@ import argparse
 
 from gpt_pdf_organizer.app.application import Application
 from gpt_pdf_organizer.infrastructure.gpt_prompt_querier import GPTPromptQuerier
-from gpt_pdf_organizer.utils.config import LLM_MODEL_NAME
-from gpt_pdf_organizer.utils.config import MAX_NUM_TOKENS
-from gpt_pdf_organizer.utils.config import API_KEY
+from gpt_pdf_organizer.utils.config import Config
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-path", type=str, required=True)
     parser.add_argument("--output-folder", type=str, required=True)
+    parser.add_argument("--config-file", type=str, required=False, default="./config.yaml")
     args = parser.parse_args()
+
+    config = Config()
+    config.load(args.config_file)
 
     app = Application(
         prompt_querier=GPTPromptQuerier({

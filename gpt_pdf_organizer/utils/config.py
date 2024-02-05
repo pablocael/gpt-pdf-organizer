@@ -1,79 +1,74 @@
 import os
+import json
 import yaml
+from enum import Enum
+
 from functools import reduce
+from dataclasses import dataclass
+from dataclasses import field
+from gpt_pdf_organizer.domain.attribute import Attribute
 
 from typing import Dict
 from typing import Any
 from typing import List
 from typing import Optional
 
+SEPARATOR_ALLOWED_CHARS = ["_", "-", " ", "."]
 
-# funtion to set in dict using string of keys separate by dot
+@dataclass
+class OrganizerSettings:
+    subfoldersFromAttributes: List[Attribute] = field(default_factory=list[Attribute.CONTENT_TYPE])
+    filenameFromAttributes: List[Attribute] = field(default_factory=list[Attribute.TITLE])
+    filenameAttributeSeparator: str = "-"
 
+    def __post_init__(self):
+        if self.filenameAttributeSeparator not in SEPARATOR_ALLOWED_CHARS:
+            raise ValueError(f"Separator {self.separator} is not allowed. Please use one of {SEPARATOR_ALLOWED_CHARS}")
+
+@dataclass
 class Config:
+    apiKey: str
+    llmModelName: str
+    organizer: OrganizerSettings
+    maxNumTokens: int = 1000
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         if config is None:
-            self._initialize({'config': {}})
+            self._initialize({})
             return
 
         self._initialize(config)
 
-    def load(self, config_path: str):uuu
+    def load_from_file(self, config_file_path: str):
 
-        with open("config.yaml", "r") as f:
+        with open(config_file_path, "r") as f:
             config = yaml.load(f, Loader=yaml.FullLoader)
 
         self._initialize(config)
 
+
+    def _get(self, key: str, default: Optional[Any] = None):
+        return reduce(lambda d, k: d.get(k, default) if isinstance(d, dict) else default, key.split("."), self)
+
     def _initialize(self, config: Dict[str, Any]):
+        self.apiKey = config.get("apiKey", os.environ.get("OPENAI_API_KEY"))
 
-        assert "config" in config, "'config' key must be present in config file as parent of all other keys"
+        if self.apiKey is None:
+            raise Exception("No API key found. Please set it in config.yaml or as environment variable OPENAI_API_KEY") 
 
-        self.config = config
-        self._fill_defaults(config.get("config", {}))
+        self.maxNumTokens = self._get("maxNumTokens", 100)
+        self.llmModelName = self._get("llmModelName", "gpt-3.5-turbo")
 
-    def get(self, composite_access_key: str, default: Any = None):
-        map_list = composite_access_key.split(".")
-        return reduce(lambda d, k: d.get(k, default) if isinstance(d, dict) else default, map_list, self.config)
-    
-    def set(self, keys, value):
-        parent = self._get_parent(keys)
-        d[last_key] = value
+        subfoldersFromAttributes = self._get("organizer.subfoldersFromAttributes", [])
+        subfoldersFromAttributes = [Attribute(attr) for attr in subfoldersFromAttributes]
 
-    def _get_parent(self, keys):
-        keys = keys.split(".")
-        last_key = keys.pop()
-        d = self.config
-        for key in keys:
-            d = d.setdefault(key, {})
-        return d
+        filenameFromAttributes = self._get("organizer.filenameFromAttributes", [])
+        filenameFromAttributes = [Attribute(attr) for attr in filenameFromAttributes]
 
-    def _set_default(self, keys, value):
-        parent = self._get_parent(keys)
-        parent.setdefault(last_key, value)
+        filenameAttributeSeparator = self._get("organizer.filenameAttributeSeparator", "-")
 
-    def _fill_defaults(config):
-        self._set_default("llmModelName", "gpt-3.5-turbo")
-        self._set_default("maxNumTokens", 1000)
-        self._set_default("organizer.subfoldersFromAttributes", ["content_type"])
-        self._set_default("organizer.filenameFromAttributes", ["title"])
-        self._set_default("organizer.attributesSeparator", "-")
-
-        # filter invalid subfolder attributes
-        subfolders_from_attributes = [x for x in self.get("organizer.subfoldersFromAttributes") if x in ["content_type", "author", "year"]]
-        self.set("organizer.subfoldersFromAttributes", subfolders_from_attributes)
-
-        # filter invalid filename attributes
-        filenames_from_attributes = [x for x in self.get("organizer.filenameFromAttributes") if x in ["content_type", "title", "author", "year"]]
-        if "title" not in filenames_from_attributes:
-            filenames_from_attributes.append("title")
-        self.set("organizer.filenameFromAttributes", filenames_from_attributes)
-
-        # filter invalid separators
-        attributes_separator = "".join(x for x in self.get("organizer.attributesSeparator") if x in ["-", "_", "."])
-        self.set("organizer.attributesSeparator", attributes_separator)
-
-        env_api_key = os.environ.get("OPENAI_API_KEY")
-        if env_api_key is not None:
-            self.set("apiKey", env_api_key)
-
+        self.organizer = OrganizerSettings(
+            subfoldersFromAttributes=subfoldersFromAttributes,
+            filenameFromAttributes=filenameFromAttributes,
+            filenameAttributeSeparator=filenameAttributeSeparator
+        )

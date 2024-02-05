@@ -15,13 +15,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     config = Config()
-    config.load(args.config_file)
+    config.load_from_file(args.config_file)
 
     app = Application(
+        config=config,
         prompt_querier=GPTPromptQuerier({
-            "api_key": API_KEY,
-            "model_name": LLM_MODEL_NAME,
-            "max_tokens": MAX_NUM_TOKENS,
+            "api_key": config.apiKey,
+            "model_name": config.llmModelName,
+            "max_tokens": config.maxNumTokens,
         })
     )
 

@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class OrganizingFields(Enum):
+class Attribute(Enum):
     AUTHOR = 'author'
     TITLE = 'author'
     YEAR = 'year'

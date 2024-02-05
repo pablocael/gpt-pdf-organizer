@@ -5,7 +5,6 @@ This file contains the functions to query the GPT chatbot.
 import tiktoken
 import openai
 from gpt_pdf_organizer.service.prompt_querier import PromptQuerier
-from gpt_pdf_organizer.domain.organizing_fields import OrganizingFields
 from gpt_pdf_organizer.utils.tokenizer import first_words_within_k_tokens
 from typing import Dict
 from typing import Tuple

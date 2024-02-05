@@ -1,29 +1,27 @@
-config:
-  # OPENAI_API_KEY environment var is also supported and will have priority over apiKey config
-  apiKey: "YOUR API KEY HERE"
-  maxNumTokens: 1000
-  llmModelName: "gpt-4"
+# OPENAI_API_KEY environment var is also supported and will have priority over apiKey config
+apiKey: "YOUR API KEY HERE"
+maxNumTokens: 1000
+llmModelName: "gpt-4"
+organizer:
+  # Config subfoldersFromAttributes supports "content_type", "author" and "year" in the order they appear.
+  # For instance, "year" and "author" will output to the folder <output_dir>/"year"/"author"/<filename>.extension.
+  # Using "content_type"will output to the folder <output_dir>/books/<filename>.extension 
+  # and <output_dir>/article/<filename>.extension.
+  # An empty list will just output to the output directory without subfolders.
+  # Default is "content_type" if subfoldersFromAttributes is not present in config.
+  subfoldersFromAttributes:
+    - content_type
 
-  organizer:
-    # Config subfoldersFromAttributes supports "content_type", "author" and "year" in the order they appear.
-    # For instance, "year" and "author" will output to the folder <output_dir>/"year"/"author"/<filename>.extension.
-    # Using "content_type"will output to the folder <output_dir>/books/<filename>.extension 
-    # and <output_dir>/article/<filename>.extension.
-    # An empty list will just output to the output directory without subfolders.
-    # Default is "content_type" if subfoldersFromAttributes is not present in config.
-    subfoldersFromAttributes:
-      - content_type
+  # Config filenameFromAttributes supports "title", "content_type", "author" and "year" in the order they appear.
+  # Content original title attribute will always be used, so if not set, all other attributes will be appended to the left of title.
+  # Using title allows for changing where those attributes will appear.
+  # For instance, "year" and "author" will output to the file name <year><filename_separator><author><filename_separator><title>.extension
+  # For instance, "title", "year" and "author" will output to the file name <title><filename_separator><year><filename_separator><author>.extension
+  # If empty list or if filenameFromAttributes is not present in the config, the default to will be ["title"].
+  filenameFromAttributes:
+    - title
 
-    # Config filenameFromAttributes supports "title", "content_type", "author" and "year" in the order they appear.
-    # Content original title attribute will always be used, so if not set, all other attributes will be appended to the left of title.
-    # Using title allows for changing where those attributes will appear.
-    # For instance, "year" and "author" will output to the file name <year><filename_separator><author><filename_separator><title>.extension
-    # For instance, "title", "year" and "author" will output to the file name <title><filename_separator><year><filename_separator><author>.extension
-    # If empty list or if filenameFromAttributes is not present in the config, the default to will be ["title"].
-    filenameFromAttributes:
-      - title
-
-    # Config filenameAttributeSeparator controls which separator to use to join attributes in the filename.
-    # Default is "-". Supported are any string not containing invalid characters for filenames.
-    filenameAttributeSeparator: "_"
+  # Config filenameAttributeSeparator controls which separator to use to join attributes in the filename.
+  # Default is "-". Supported are any string not containing invalid characters for filenames.
+  filenameAttributeSeparator: "_"
 

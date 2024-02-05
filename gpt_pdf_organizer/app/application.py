@@ -9,7 +9,6 @@ from typing import List
 from typing import Optional
 
 from gpt_pdf_organizer.service.prompt_querier import PromptQuerier
-from gpt_pdf_organizer.domain.organizing_fields import OrganizingFields
 from gpt_pdf_organizer.utils.file import read_files_from_path
 from gpt_pdf_organizer.domain.prompt_builder import build_query_from_content
 from gpt_pdf_organizer.utils.pdf import read_pdf_page
@@ -21,25 +20,12 @@ logger = logging.getLogger(__name__)
 
 class Application:
 
-    def __init__(self, config: Config, prompt_querier: PromptQuerier, subfolders_from_attributes: Optional[List[OrganizingFields]] = None,
-                 filenames_from_attributes: Optional[List[OrganizingFields]] = None):
+    def __init__(self, config: Config, prompt_querier: PromptQuerier):
         """
         Initialize the application.
         """
         self.config = config
         self.prompt_querier = prompt_querier
-
-        self.subfolders_from_attributes = subfolders_from_attributes
-        if self.subfolders_from_attributes is None:
-            self.subfolders_from_attributes = [
-                OrganizingFields.CONTENT_TYPE
-            ]
-
-        self.filenames_from_attributes = filenames_from_attributes
-        if self.filenames_from_attributes is None:
-            self.filenames_from_attributes = [
-                OrganizingFields.TITLE
-            ]
 
     def organize(self, input_path: str, output_dir: str):
         """
@@ -54,10 +40,11 @@ class Application:
         for file in files:
             logger.info("processing file %s ...", file)
             content = self._read_first_k_tokens_from_pdf(
-                pdf_path=file, k=MAX_NUM_TOKENS)
+                pdf_path=file, k=self.config.maxNumTokens)
             logger.debug("extracted content is content: %s", content)
             prompt = build_query_from_content(content=content)
             response = self.prompt_querier.query(prompt)
+            print(">>>>>>>>>>>", response)
 
     def _read_first_k_tokens_from_pdf(self, pdf_path: str, k: int) -> str:
         """

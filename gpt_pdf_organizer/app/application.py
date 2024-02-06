@@ -16,7 +16,6 @@ from gpt_pdf_organizer.utils.config import Config
 
 import logging
 
-logger = logging.getLogger(__name__)
 
 class Application:
 
@@ -26,6 +25,7 @@ class Application:
         """
         self.config = config
         self.prompt_querier = prompt_querier
+        self._initialize_logger()
 
     def organize(self, input_path: str, output_dir: str):
         """
@@ -35,16 +35,53 @@ class Application:
         self._initialize_output_dir(output_dir=output_dir)
 
         files = read_files_from_path(input_path, "pdf")
-        logger.info("processing %d files from folder %s ...", (len(files), input_path))
+        self.logger.info("processing %d files from folder %s ...",
+                    (len(files), input_path))
 
         for file in files:
-            logger.info("processing file %s ...", file)
+            self.logger.info("processing file %s ...", file)
             content = self._read_first_k_tokens_from_pdf(
                 pdf_path=file, k=self.config.maxNumTokens)
-            logger.debug("extracted content is content: %s", content)
+            self.logger.debug("extracted content is content: %s", content)
             prompt = build_query_from_content(content=content)
             response = self.prompt_querier.query(prompt)
-            print(">>>>>>>>>>>", response)
+            metadata = json.loads(response)
+            print(">>>>>>>", metadata)
+            print(">>>>>>>", self._build_filename_from_attribute_values(metadata))
+
+    def _initialize_log_folder(self, log_folder: str):
+        """
+        Initialize the log folder.
+        """
+        os.makedirs(log_folder, exist_ok=True)
+
+    def _get_current_python_file_path(self) -> str:
+        """
+        Get the path of the current Python file.
+        """
+        return os.path.abspath(os.path.dirname(__file__))
+
+    def _initialize_logger(self) -> logging.Logger:
+
+        # initialize the log folder
+        self._initialize_log_folder(log_folder=os.path.join(
+            self._get_current_python_file_path(), 'logs'))
+
+        # create a file stream handler
+        self.logger = logging.getLogger(__name__)
+        file_handler = logging.FileHandler(
+            os.path.join(self._get_current_python_file_path(), 'logs', 'application.log'))
+        formatter = logging.Formatter("%(asctime)s;%(levelname)s;%(message)s")
+        file_handler.setLevel(self.config.logLevel.upper())
+        file_handler.setFormatter(formatter)
+        self.logger.addHandler(file_handler)
+        return self.logger
+
+    def _convert_to_snake_case(self, text: str) -> str:
+        """
+        Convert the given text to snake case.
+        """
+        return text.lower().replace(" ", "_")
 
     def _read_first_k_tokens_from_pdf(self, pdf_path: str, k: int) -> str:
         """
@@ -78,16 +115,24 @@ class Application:
 
         os.makedirs(output_dir, exist_ok=True)
 
-    def build_filename_from_attribute_values(self, attribute_values: Dict[str, str]) -> str:
+    def _build_filename_from_attribute_values(self, attribute_values: Dict[str, str]) -> str:
         """
         Build a filename from the given attributes.
         """
         filename = ""
-        for i, attribute in enumerate(self.filenames_from_attributes):
+        attributes = self.config.organizer.filenameFromAttributes
+        separator = self.config.organizer.filenameAttributeSeparator
+        for i, attribute in enumerate(attributes):
+            if attribute.name.lower() not in attribute_values:
+                continue
 
-            filename += attribute_values[attribute.name.lower()]
-            if i < len(self.filenames_from_attributes) - 1:
-                filename += ATTRIBUTES_SEPARATOR
+            value = self._convert_to_snake_case(attribute_values[attribute.name.lower()])
+            if value.strip() == "null":
+                continue
+
+            filename += value 
+            if i < len(attributes) - 1:
+                filename += separator
 
         return filename
 
@@ -97,6 +142,7 @@ class Application:
         """
         output_dir = ""
         for i, attribute in enumerate(self.subfolders_from_attributes):
-            output_dir = os.join(output_dir, attribute_values[attribute.name.lower()])
+            output_dir = os.join(
+                output_dir, attribute_values[attribute.name.lower()])
 
         return output_dir

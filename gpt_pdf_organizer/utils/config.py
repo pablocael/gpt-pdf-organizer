@@ -20,6 +20,7 @@ class OrganizerSettings:
     subfoldersFromAttributes: List[Attribute] = field(default_factory=list[Attribute.CONTENT_TYPE])
     filenameFromAttributes: List[Attribute] = field(default_factory=list[Attribute.TITLE])
     filenameAttributeSeparator: str = "-"
+    moveInsteadOfCopy: bool = False
 
     def __post_init__(self):
         if self.filenameAttributeSeparator not in SEPARATOR_ALLOWED_CHARS:
@@ -89,6 +90,6 @@ class Config:
         self.organizer = OrganizerSettings(
             subfoldersFromAttributes=subfoldersFromAttributes,
             filenameFromAttributes=filenameFromAttributes,
-            filenameAttributeSeparator=filenameAttributeSeparator
+            filenameAttributeSeparator=filenameAttributeSeparator,
+            moveInsteadOfCopy=self._raw_get("organizer.moveInsteadOfCopy", False)
         )
-        print(self)

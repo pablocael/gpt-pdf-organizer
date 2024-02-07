@@ -1,23 +1,32 @@
 # OPENAI_API_KEY environment var is also supported and will have priority over apiKey config
 apiKey: "YOUR API KEY HERE"
-maxNumTokens: 1000
+maxNumTokens: 2100
 llmModelName: "gpt-4"
+logLevel: "info"
 organizer:
-  # Config subfoldersFromAttributes supports "content_type", "author" and "year" in the order they appear.
+  # This option will move the files in the original folder to the output destination instead of copying them. Default is false.
+  moveInsteadOfCopy: true
+  # Config subfoldersFromAttributes supports "content_type", "author", "topic", "sub_topic" and "year" in the order they appear.
   # For instance, "year" and "author" will output to the folder <output_dir>/"year"/"author"/<filename>.extension.
-  # Using "content_type"will output to the folder <output_dir>/books/<filename>.extension 
+  # Using "content_type"will output to the folder <output_dir>/books/<filename>.extension
   # and <output_dir>/article/<filename>.extension.
   # An empty list will just output to the output directory without subfolders.
   # Default is "content_type" if subfoldersFromAttributes is not present in config.
+  # Note: if any of the attributes could not be infered (e.g: is null), then it will not be used and will be replaces by "unknown_<attribute_name>" within the nested
+  # sub folders. For example. "content_type", "year", "topic", "sub_topic". If "topic" is null, then output folder will be:
+  # <content_type>/<year>/unknwon_topic/<sub_topic>.
   subfoldersFromAttributes:
     - content_type
+    - sub_topic
 
-  # Config filenameFromAttributes supports "title", "content_type", "author" and "year" in the order they appear.
+  # Config filenameFromAttributes supports "title", "content_type", "author", "topic", "sub_topic" and "year" in the order they appear.
   # Content original title attribute will always be used, so if not set, all other attributes will be appended to the left of title.
   # Using title allows for changing where those attributes will appear.
   # For instance, "year" and "author" will output to the file name <year><filename_separator><author><filename_separator><title>.extension
   # For instance, "title", "year" and "author" will output to the file name <title><filename_separator><year><filename_separator><author>.extension
   # If empty list or if filenameFromAttributes is not present in the config, the default to will be ["title"].
+  # Note: if any of the attributes could not be infered (e.g: is null), then it will be replaces by "unknown_<attribute_name>", for example:
+  # If year cannot be deduced: unknown_year_<author>_<title>.<extension>
   filenameFromAttributes:
     - title
 

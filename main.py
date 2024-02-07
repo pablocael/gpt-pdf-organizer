@@ -17,6 +17,8 @@ if __name__ == "__main__":
     config = Config()
     config.load_from_file(args.config_file)
 
+    print(config)
+
     app = Application(
         config=config,
         prompt_querier=GPTPromptQuerier({

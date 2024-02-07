@@ -2,6 +2,8 @@
 File related functions
 """
 import os
+import glob
+
 from gpt_pdf_organizer.app.exception import FilepathNotSupportedException
 from typing import List
 

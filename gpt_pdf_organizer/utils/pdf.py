@@ -11,5 +11,9 @@ def read_pdf_page(pdf_path: str, page_index: int) -> str:
     """
 
     with pdfplumber.open(pdf_path) as pdf:
-        return pdf.pages[page_index].extract_text()
+        if page_index >= len(pdf.pages):
+            return None
+
+        text = pdf.pages[page_index].extract_text()
+        return text
 

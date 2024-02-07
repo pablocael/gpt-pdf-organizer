@@ -4,6 +4,7 @@ The main application use case class.
 
 import os
 import json
+import shutil
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -16,6 +17,7 @@ from gpt_pdf_organizer.utils.config import Config
 
 import logging
 
+ACCEPTED_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
 
 class Application:
 
@@ -34,20 +36,74 @@ class Application:
 
         self._initialize_output_dir(output_dir=output_dir)
 
+        print("Using model", self.config.llmModelName)
+        print("Using max_tokens", self.config.maxNumTokens)
+
         files = read_files_from_path(input_path, "pdf")
         self.logger.info("processing %d files from folder %s ...",
-                    (len(files), input_path))
+                         (len(files), input_path))
+
+        # store files that could not be classified
+        unclassified_files = []
 
         for file in files:
             self.logger.info("processing file %s ...", file)
             content = self._read_first_k_tokens_from_pdf(
                 pdf_path=file, k=self.config.maxNumTokens)
-            self.logger.debug("extracted content is content: %s", content)
+            if content is None:
+                self.logger.warning(
+                    "could not extract content from file %s, skipping ...", file)
+                unclassified_files.append(file)
+                print("Could not classify file", file)
+                continue
+
+            self.logger.debug(f"extracted content from file {file}, content size is {len(content)}")
             prompt = build_query_from_content(content=content)
             response = self.prompt_querier.query(prompt)
-            metadata = json.loads(response)
-            print(">>>>>>>", metadata)
-            print(">>>>>>>", self._build_filename_from_attribute_values(metadata))
+            try:
+                metadata = json.loads(response)
+            except json.JSONDecodeError:
+                self.logger.error("could not parse response from prompt, skipping ...")
+                unclassified_files.append(file)
+                print("Could not classify file", file)
+                continue
+
+            if metadata['title'].strip() == "null":
+                self.logger.error("could not classify file %s, skipping ...", file)
+                print("Could not classify file", file)
+                unclassified_files.append(file)
+                continue
+
+            filename = self._build_filename_from_attribute_values(metadata)
+            final_output_dir = os.path.join(output_dir, self.build_output_dir_from_attribute_values(metadata))
+            os.makedirs(final_output_dir, exist_ok=True)
+
+
+            dest = os.path.join(final_output_dir, filename + ".pdf")
+            if self.config.organizer.moveInsteadOfCopy:
+                print("Moving file", file, "to", dest)
+                shutil.move(file, dest)
+            else:
+                print("Copying file", file, "to", dest)
+                shutil.copy(file, dest)
+
+    def _handle_unclassified_files(self, unclassified_files: List[str], output_dir: str):
+        """
+        Handle unclassified files.
+        """
+        if len(unclassified_files) == 0:
+            return
+
+        self.logger.info("handling %d unclassified files ...", len(unclassified_files))
+        unclassified_files_output_dir = os.path.join(output_dir, "unclassified")
+        os.makedirs(unclassified_files_output_dir, exist_ok=True)
+        for file in unclassified_files:
+            if self.config.organizer.moveInsteadOfCopy:
+                print("Moving unclassified file", file, "to", unclassified_files_output_dir)
+                shutil.move(file, unclassified_files_output_dir)
+            else:
+                print("Copying unclassified file", file, "to", unclassified_files_output_dir)
+                shutil.copy(file, unclassified_files_output_dir)
 
     def _initialize_log_folder(self, log_folder: str):
         """
@@ -59,7 +115,7 @@ class Application:
         """
         Get the path of the current Python file.
         """
-        return os.path.abspath(os.path.dirname(__file__))
+        return os.path.abspath(os.curdir)
 
     def _initialize_logger(self) -> logging.Logger:
 
@@ -81,9 +137,14 @@ class Application:
         """
         Convert the given text to snake case.
         """
-        return text.lower().replace(" ", "_")
+        value = text.lower().replace(" ", "_")
+        for v in value:
+            if v not in ACCEPTED_CHARACTERS:
+                value = value.replace(v, "")
 
-    def _read_first_k_tokens_from_pdf(self, pdf_path: str, k: int) -> str:
+        return value
+
+    def _read_first_k_tokens_from_pdf(self, pdf_path: str, k: int, limit_num_pages: int = 25) -> str:
         """
         Read the first k tokens from the given PDF file.
         """
@@ -93,6 +154,9 @@ class Application:
         while True:
             text = read_pdf_page(pdf_path=pdf_path,
                                  page_index=current_page)
+            if text is None:
+                break
+
             text, num_tokens_read = self.prompt_querier.clamp_text_by_tokens(
                 text=text, max_tokens=k - total_tokens_read)
             total_tokens_read += num_tokens_read
@@ -100,6 +164,9 @@ class Application:
 
             if total_tokens_read >= k:
                 break
+
+            if current_page >= limit_num_pages:
+                return None
 
             current_page += 1
 
@@ -109,10 +176,6 @@ class Application:
         """
         Initialize the output directory.
         """
-        if os.path.exists(output_dir) and len(os.listdir(output_dir)) > 0:
-            raise ValueError(
-                "Output directory already exists but is not empty, please specify a non-existing or empty directory")
-
         os.makedirs(output_dir, exist_ok=True)
 
     def _build_filename_from_attribute_values(self, attribute_values: Dict[str, str]) -> str:
@@ -126,11 +189,12 @@ class Application:
             if attribute.name.lower() not in attribute_values:
                 continue
 
-            value = self._convert_to_snake_case(attribute_values[attribute.name.lower()])
+            value = self._convert_to_snake_case(
+                attribute_values[attribute.name.lower()])
             if value.strip() == "null":
-                continue
+                value = f"unknown_{attribute.name.lower()}"
 
-            filename += value 
+            filename += value
             if i < len(attributes) - 1:
                 filename += separator
 
@@ -141,8 +205,13 @@ class Application:
         Build an output directory from the given attributes.
         """
         output_dir = ""
-        for i, attribute in enumerate(self.subfolders_from_attributes):
-            output_dir = os.join(
-                output_dir, attribute_values[attribute.name.lower()])
+        attributes = self.config.organizer.subfoldersFromAttributes
+        for i, attribute in enumerate(attributes):
+            value = self._convert_to_snake_case(
+                attribute_values[attribute.name.lower()])
+            if value.strip() == "null":
+                value = f"unknown_{attribute.name.lower()}"
+
+            output_dir = os.path.join(output_dir, value)
 
         return output_dir

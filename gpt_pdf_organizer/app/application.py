@@ -54,7 +54,7 @@ class Application:
                 self.logger.warning(
                     "could not extract content from file %s, skipping ...", file)
                 unclassified_files.append(file)
-                print("Could not classify file", file)
+                self._handle_unclassified_file(file, output_dir)
                 continue
 
             self.logger.debug(f"extracted content from file {file}, content size is {len(content)}")
@@ -65,19 +65,18 @@ class Application:
             except json.JSONDecodeError:
                 self.logger.error("could not parse response from prompt, skipping ...")
                 unclassified_files.append(file)
-                print("Could not classify file", file)
+                self._handle_unclassified_file(file, output_dir)
                 continue
 
             if metadata['title'].strip() == "null":
                 self.logger.error("could not classify file %s, skipping ...", file)
                 print("Could not classify file", file)
-                unclassified_files.append(file)
+                self._handle_unclassified_file(file, output_dir)
                 continue
 
             filename = self._build_filename_from_attribute_values(metadata)
             final_output_dir = os.path.join(output_dir, self.build_output_dir_from_attribute_values(metadata))
             os.makedirs(final_output_dir, exist_ok=True)
-
 
             dest = os.path.join(final_output_dir, filename + ".pdf")
             if self.config.organizer.moveInsteadOfCopy:
@@ -87,23 +86,18 @@ class Application:
                 print("Copying file", file, "to", dest)
                 shutil.copy(file, dest)
 
-    def _handle_unclassified_files(self, unclassified_files: List[str], output_dir: str):
+    def _handle_unclassified_file(self, unclassified_file: str, output_dir: str):
         """
         Handle unclassified files.
         """
-        if len(unclassified_files) == 0:
-            return
-
-        self.logger.info("handling %d unclassified files ...", len(unclassified_files))
         unclassified_files_output_dir = os.path.join(output_dir, "unclassified")
         os.makedirs(unclassified_files_output_dir, exist_ok=True)
-        for file in unclassified_files:
-            if self.config.organizer.moveInsteadOfCopy:
-                print("Moving unclassified file", file, "to", unclassified_files_output_dir)
-                shutil.move(file, unclassified_files_output_dir)
-            else:
-                print("Copying unclassified file", file, "to", unclassified_files_output_dir)
-                shutil.copy(file, unclassified_files_output_dir)
+        if self.config.organizer.moveInsteadOfCopy:
+            print("Moving unclassified file", unclassified_file, "to", unclassified_files_output_dir)
+            shutil.move(unclassified_file, unclassified_files_output_dir)
+        else:
+            print("Copying unclassified file", unclassified_file, "to", unclassified_files_output_dir)
+            shutil.copy(unclassified_file, unclassified_files_output_dir)
 
     def _initialize_log_folder(self, log_folder: str):
         """

@@ -1,7 +1,7 @@
 # OPENAI_API_KEY environment var is also supported and will have priority over apiKey config
 apiKey: "YOUR API KEY HERE"
-maxNumTokens: 2100
-llmModelName: "gpt-4"
+maxNumTokens: 1000
+llmModelName: "gpt-3.5-turbo"
 logLevel: "info"
 organizer:
   # This option will move the files in the original folder to the output destination instead of copying them. Default is false.

@@ -1,4 +1,4 @@
-pyyaml
+pyyaml==6.0.1
 openai==1.9.0
 tiktoken==0.5.2
 pdfplumber==0.10.3

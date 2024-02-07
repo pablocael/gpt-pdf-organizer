@@ -8,8 +8,7 @@ from gpt_pdf_organizer.app.application import Application
 from gpt_pdf_organizer.infrastructure.gpt_prompt_querier import GPTPromptQuerier
 from gpt_pdf_organizer.utils.config import Config
 
-if __name__ == "__main__":
-
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-path", type=str, required=True)
     parser.add_argument("--output-folder", type=str, required=True)
@@ -34,3 +33,6 @@ if __name__ == "__main__":
         input_path=args.input_path,
         output_dir=args.output_folder,
     )
+
+if __name__ == "__main__":
+    main()

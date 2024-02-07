@@ -5,7 +5,7 @@ llmModelName: "gpt-3.5-turbo"
 logLevel: "info"
 organizer:
   # This option will move the files in the original folder to the output destination instead of copying them. Default is false.
-  moveInsteadOfCopy: true
+  moveInsteadOfCopy: false
   # Config subfoldersFromAttributes supports "content_type", "author", "topic", "sub_topic" and "year" in the order they appear.
   # For instance, "year" and "author" will output to the folder <output_dir>/"year"/"author"/<filename>.extension.
   # Using "content_type"will output to the folder <output_dir>/books/<filename>.extension

@@ -4,6 +4,7 @@ This file contains the functions for tokenizing the text and selecting the first
 
 import tiktoken
 
+
 def first_words_within_k_tokens(text: str, k: int, llm_model_name: str):
 
     # Tokenize the text
@@ -27,5 +28,5 @@ def first_words_within_k_tokens(text: str, k: int, llm_model_name: str):
         word_count += 1
 
     # Join the words that fit within the token and word limits
-    selected_text = ' '.join(words[:word_count])
+    selected_text = " ".join(words[:word_count])
     return selected_text, token_count

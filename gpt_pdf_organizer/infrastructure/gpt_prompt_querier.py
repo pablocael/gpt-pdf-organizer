@@ -53,7 +53,7 @@ class GPTPromptQuerier(PromptQuerier):
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": prompt},
-            ]
+            ],
         )
 
         return response.choices[0].message.content
@@ -91,7 +91,7 @@ class GPTPromptQuerier(PromptQuerier):
             word_count += 1
 
         # Join the words that fit within the token and word limits
-        selected_text = ' '.join(words[:word_count])
+        selected_text = " ".join(words[:word_count])
         return selected_text, token_count
 
     def _get_config(self, key):

@@ -4,8 +4,9 @@ for the prompt query service.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict 
+from typing import Dict
 from typing import Tuple
+
 
 class PromptQuerier(ABC):
     """

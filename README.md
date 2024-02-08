@@ -47,18 +47,11 @@ This tool performs a query to ChatGpt API to ask questions about the content of 
 
 The PDF content is not the full PDF but rather the first `config.maxNumTokens` tokens that will be extracted from the PDF file.
 
-The total amount of tokens spent during a single request for each file is then `config.maxNumTokens` + `promptTokenSize`, where `promptTokenSize` is the constant total size of the prompt and spans `281` tokens.
+The total amount of tokens spent during a single request for each file is then `config.maxNumTokens` + `promptTokenSize`, where `promptTokenSize` is the constant size of the prompt itself and spans `281` tokens.
 
 Make sure to add enough credits to your ChatGpt account and setting up your [apiKey](#configuration-file) before using.
 
 The `apiKey` can be set via configuration file or (by setting `OPENAI_API_KEY` environment variable - it will override the config `apiKey` value).
-
-
-<div id='section-id-34'/>
-
-### Selecting an LLM Model
-
-The cost of usage also depends on the model used. One can configure the model by setting `llmModelName` in the [apiKey](#configuration-file) file.
 
 
 In summary, the total cost for organizing your files will depend on 3 factors:
@@ -69,6 +62,13 @@ In summary, the total cost for organizing your files will depend on 3 factors:
 
 
 Optionally, one can also try to customize the prompt. See [Prompt Customization](#prompt-customization).
+
+<div id='section-id-34'/>
+
+### Selecting an LLM Model
+
+The cost of usage also depends on the model used. One can configure the model by setting `llmModelName` in the [apiKey](#configuration-file) file.
+
 
 <div id='section-id-48'/>
 

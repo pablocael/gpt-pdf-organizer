@@ -1,16 +1,15 @@
 
 # GPT PDF Organizer
 
-GPT Pdf Organizer is an automatic pdf file organizer that will query chat gpt apis to perform information retrieval about the contents of the files in order to properly classify them and organize them into folders.
+GPT PDF Organizer is an automatic pdf file organizer that will query ChatGpt API to perform information retrieval about the contents of the files in order to properly classify them and organize them into folders.
 
-The organization process can be customized using a config file in yaml format. This customization involves how the new organized pdf file names will be constructed from extracted properties, and how pdf files will be grouped into folders also based on those extracted properties.
+The organization process can be customized using a config file in yaml format. This customization involves how the new organized pdf file names will and subfolders will be constructed from extracted properties.
 
 
 ## Table of Contents
 
 - [Usage](#section-id-7)
 - [API Cost of Usage and Tokens](#section-id-17)
-  - [Selecting an LLM Model](#section-id-34)
  - [Configuration File](#section-id-48)
  - [Example of Usage](#section-id-101)
    - [Classifying a Single File](#section-id-103)
@@ -42,16 +41,16 @@ Default `config-file` used will be a local './config.yaml' file if no other is p
 The ChatGpt API uses [tokens](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them) to calculate the API request call cost. Tokens are not always the same as words.
 This tool performs a query to ChatGpt API to ask questions about the content of a PDF file, and will use tokens in two ways:
 
-- The query prompt, sent to GPT to ask about the PDF content.
-- The PDF content
+- The query prompt content, sent to GPT to ask information the PDF content.
+- The PDF content itself
 
-The PDF content is not the full PDF but rather the first `config.maxNumTokens` tokens that will be extracted from the PDF file.
+The PDF content sent is not the full PDF text but rather the first `config.maxNumTokens` tokens that will be extracted from the PDF file.
 
-The total amount of tokens spent during a single request for each file is then `config.maxNumTokens` + `promptTokenSize`, where `promptTokenSize` is the constant size of the prompt itself and spans `281` tokens.
+The total amount of tokens spent during a single request for each file is then `config.maxNumTokens` + `promptTokenSize`, where `promptTokenSize` is the of the prompt itself and spans `281` tokens.
 
-Make sure to add enough credits to your ChatGpt account and setting up your [apiKey](#configuration-file) before using.
+For example, if one chooses to use `config.maxNumTokens=1500` tokens to read the PDF content, the total amount of tokens spent in the request will be `1500+281=1781`.
 
-The `apiKey` can be set via configuration file or (by setting `OPENAI_API_KEY` environment variable - it will override the config `apiKey` value).
+The cost of usage also depends on the model used. One can configure the model by setting `llmModelName` in the [config](#configuration-file) file.
 
 
 In summary, the total cost for organizing your files will depend on 3 factors:
@@ -61,39 +60,25 @@ In summary, the total cost for organizing your files will depend on 3 factors:
 - The number of tokens to use for extracting PDF content (see [maxNumTokens](#configuration-file)). The larger `maxNumTokens` value, the more accurate will be the classification of the content, but also more costly the api call will be.
 
 
-Optionally, one can also try to customize the prompt. See [Prompt Customization](#prompt-customization).
+Make sure to add enough credits to your ChatGpt account and setting up your [apiKey](#configuration-file) before using.
 
-<div id='section-id-34'/>
-
-### Selecting an LLM Model
-
-The cost of usage also depends on the model used. One can configure the model by setting `llmModelName` in the [apiKey](#configuration-file) file.
-
+If one wants to try to use a smaller prompt, one can also try to customize the prompt. See [Prompt Customization](#prompt-customization).
 
 <div id='section-id-48'/>
 
 ## Configuration File
 
 The configuration file is an yaml file that supports the following properties:
-
-| Property                          | Description                                                                                                                                                                                                                                                                                                                                                               |
-|-----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `apiKey`                          | type: str. 
-The API key used for authentication. If the `OPENAI_API_KEY` environment variable is set, it will take precedence over this configuration.                                                                                                                                                                                                                               |
-| `maxNumTokens`                    | type: int. 
-The maximum number of tokens to use for extracting content from the PDF file. Only the first `maxNumTokens` tokens will be extract from the PDF file. The larger the number of tokens, the more accurate the results for classification, but more costly will be the request.                                                                                                                                                                                                                                                                                                                |
-| `llmModelName`                    | type: str. 
-The name of the language model to use, e.g., "gpt-3.5-turbo".                                                                                                                                                                                                                                                                                                            |
-| `logLevel`                        | type: str.
-The level of logging to output, e.g., "info".                                                                                                                                                                                                                                                                                                                            |
-| `organizer.moveInsteadOfCopy`     | type: bool. 
-When set to true, files in the original folder are moved to the output destination instead of being copied. The default is false. Be aware that will remove the original file after moving it to the classified folder structure                                                                                                                                                                                                                                        |
-| `organizer.subfoldersFromAttributes` | type: List[str]. 
-Determines the structure of subfolders in the output directory based on content attributes such as "content_type", "author", "topic", "sub_topic", and "year". The nesting order of subfolders is the same as the order of the attributes in the config file. If an attribute cannot be inferred from the llm api, it will be null and it will be replaced with "unknown_<attribute_name>" in the folder path. The default is "content_type" if this property is not specified.                                             |
-| `organizer.filenameFromAttributes` | type: List[str]. 
-Configures the filename based on content attributes like "title", "content_type", "author", "topic", "sub_topic", and "year". The attribute order within the filename is the same as the order the attributes appear in the config file. The original title attribute is always used, and if not set, other attributes are appended to the left of the title. If an attribute is null (e.g: cannot be inferred from the llm api), it will be replaced with "unknown_<attribute_name>". The default is ["title"] if not specified. |
-| `organizer.filenameAttributeSeparator` | type: str. 
-Specifies the separator used to join attributes in the filename. The default is "-", but any string not containing invalid filename characters is supported.                                                                                                                                                                                                             |
+| Property                          | Type | Description                                                                                                                                                                                                                                                                                                                                                               |
+|-----------------------------------|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `apiKey`                          | string  | The API key used for authentication. If the `OPENAI_API_KEY` environment variable is set, it will take precedence over this configuration.                                                                                                                                                                                                                               |
+| `maxNumTokens`                    | integer | The maximum number of tokens to use for extracting content from the PDF file. Only the first `maxNumTokens` tokens will be extract from the PDF file. The larger the number of tokens, the more accurate the results for classification, but more costly will be the request.                                                                                                                                                                                                                                                                                                                |
+| `llmModelName`                    | string | The name of the language model to use, e.g., "gpt-3.5-turbo".                                                                                                                                                                                                                                                                                                            |
+| `logLevel`                        | string | The level of logging to output, e.g., "info".                                                                                                                                                                                                                                                                                                                            |
+| `organizer.moveInsteadOfCopy`     | boolean | When set to true, files in the original folder are moved to the output destination instead of being copied. The default is false. Be aware that will remove the original file after moving it to the classified folder structure                                                                                                                                                                                                                                        |
+| `organizer.subfoldersFromAttributes` | List[string] | Determines the structure of subfolders in the output directory based on content attributes such as "content_type", "author", "topic", "sub_topic", and "year". The nesting order of subfolders is the same as the order of the attributes in the config file (e.g: attr1/attri2/...). If an attribute cannot be inferred from the llm api, it will be null and it will be replaced with "unknown_<attribute_name>" in the folder path. The default is "content_type" if this property is not specified.                                             |
+| `organizer.filenameFromAttributes` | List[string] | Configures the filename based on content attributes like "title", "content_type", "author", "topic", "sub_topic", and "year". The attribute order within the filename is the same as the order the attributes appear in the config file. The original title attribute is always used, and if not set, other attributes are appended to the left of the title. If an attribute is null (e.g: cannot be inferred from the llm api), it will be replaced with "unknown_<attribute_name>". The default is ["title"] if not specified. |
+| `organizer.filenameAttributeSeparator` | string | Specifies the separator used to join attributes in the filename. The default is "-", but any string not containing invalid filename characters is supported.                                                                                                                                                                                                             |
 
 The attributes used in config `organizer.subfoldersFromAttributes` and `organizer.filenameFromAttributes` are:
 
@@ -141,8 +126,9 @@ Main Topic and Sub Topic are always classified according to the following list, 
 
 ### Classifying a Single File
 
-```
-gpt-file-organizer --input-path=/home/me/Documents/afile.pdf  --output-folder="/home/me/Documents/classified/"
+```bash
+gpt-file-organizer --input-path="/home/me/Documents/afile.pdf"  \
+ --output-folder="/home/me/Documents/classified/"
 ```
 
 <div id='section-id-109'/>
@@ -151,8 +137,9 @@ gpt-file-organizer --input-path=/home/me/Documents/afile.pdf  --output-folder="/
 
 To classify a whole folder, just use same command passing a folder instead of a file. The application will automatically detect if the input is a folder or a file.
 
-```
-gpt-file-organizer --input-path=/home/me/Documents/pdfs/  --output-folder="/home/me/Documents/classified/"
+```bash
+gpt-file-organizer --input-path="/home/me/Documents/pdfs/"  \
+ --output-folder="/home/me/Documents/classified/"
 ```
 
 <div id='section-id-117'/>

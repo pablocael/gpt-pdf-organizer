@@ -8,7 +8,7 @@ def read_requirements_file(filename):
 
 setup(
     name="gpt-pdf-organizer",
-    version="0.1.2",
+    version="0.1.4",
     packages=find_packages(),
     install_requires=read_requirements_file("requirements.txt"),
     py_modules=["gpt_pdf_organizer"],

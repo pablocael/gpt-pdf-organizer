@@ -210,5 +210,5 @@ This step is optional and a default prompt is already tweaked to extract good re
 
 To customize the prompt that will be performed to each file, one can do it in two ways:
 
-- By changing the prompt in the (prompt_builder)[./gpt_pdf_organizer/domain/prompt_builder.py] module: this will keep current GPT prompter but allows to change the prompt sent to the GPT api.
+- By changing the prompt in the [prompt_builder](./gpt_pdf_organizer/domain/prompt_builder.py) module: this will keep current GPT prompter but allows to change the prompt sent to the GPT api.
 - By passing a different [PromptQuerier](./gpt_pdf_organizer/service/prompt_querier.py) class instance to Application when it starts on [main entrypoint](./gpt_pdf_organizer/gpt_pdf_organizer.py): this allows integrating different apis other than ChatGpt, such as bing or bard.

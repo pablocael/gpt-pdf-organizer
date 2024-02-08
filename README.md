@@ -151,7 +151,7 @@ gpt-file-organizer --input-path=/home/me/Documents/pdfs/  --output-folder="/home
 
 ### Example of Output File Structure
 
-The above example is an theoretical output for classified files that uses only year and title in output filename, and content_type/topic/sub_topic as subfolders:
+The above example is an theoretical output for classified files that uses only year and title in output filename, and content_type/sub_topic as subfolders (this can be configured in config file):
 
 - Original Files:
 ```

@@ -1,10 +1,31 @@
+
 # GPT PDF Organizer
 
 GPT Pdf Organizer is an automatic pdf file organizer that will query chat gpt apis to perform information retrieval about the contents of the files in order to properly classify them and organize them into folders.
 
 The organization process can be customized using a config file in yaml format. This customization involves how the new organized pdf file names will be constructed from extracted properties, and how pdf files will be grouped into folders also based on those extracted properties.
 
-# Usage
+
+## Table of Contents
+
+- [Usage](#section-id-7)
+- [API Cost of Usage and Tokens](#section-id-17)
+  - [Selecting an LLM Model](#section-id-34)
+ - [Configuration File](#section-id-48)
+ - [Example of Usage](#section-id-101)
+   - [Classifying a Single File](#section-id-103)
+   - [Classifying All Files in a Folder](#section-id-109)
+   - [Example of Output File Structure](#section-id-117)
+- [Limitations](#section-id-152)
+- [Installation](#section-id-158)
+- [Development](#section-id-162)
+  - [Prompt Customization](#section-id-164)
+
+
+
+<div id='section-id-1'/>
+
+## Usage
 
 ```
 gpt-pdf-organizer --input-path INPUT_PATH \
@@ -14,7 +35,9 @@ gpt-pdf-organizer --input-path INPUT_PATH \
 
 Default `config-file` used will be a local './config.yaml' file if no other is passed as argument.
 
-# API Cost of Usage and Tokens
+<div id='section-id-17'/>
+
+## API Cost of Usage and Tokens
 
 The ChatGpt API uses [tokens](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them) to calculate the API request call cost. Tokens are not always the same as words.
 This tool performs a query to ChatGpt API to ask questions about the content of a PDF file, and will use tokens in two ways:
@@ -31,7 +54,9 @@ Make sure to add enough credits to your ChatGpt account and setting up your [api
 The `apiKey` can be set via configuration file or (by setting `OPENAI_API_KEY` environment variable - it will override the config `apiKey` value).
 
 
-## Selecting an LLM Model
+<div id='section-id-34'/>
+
+### Selecting an LLM Model
 
 The cost of usage also depends on the model used. One can configure the model by setting `llmModelName` in the [apiKey](#configuration-file) file.
 
@@ -39,11 +64,13 @@ The cost of usage also depends on the model used. One can configure the model by
 In summary, the total cost for organizing your files will depend on 3 factors:
 
 - The total number of files to organize
-- The chosen model (e.g: `gpt-4` or `gpt-3.5-turbo`, etc). See [OpenAPI Models](https://platform.openai.com/docs/models/overview) for all the models. 
-- The number of tokens to use for extracting PDF content (see [maxNumTokens](#configuration-file)). The larger `maxNumTokens` value, the more accurate will be the classification of the content, but also more costly the api call will be. 
+- The chosen model (e.g: `gpt-4` or `gpt-3.5-turbo`, etc). See [OpenAPI Models](https://platform.openai.com/docs/models/overview) for all the models.
+- The number of tokens to use for extracting PDF content (see [maxNumTokens](#configuration-file)). The larger `maxNumTokens` value, the more accurate will be the classification of the content, but also more costly the api call will be.
 
 
 Optionally, one can also try to customize the prompt. See [Prompt Customization](#prompt-customization).
+
+<div id='section-id-48'/>
 
 ## Configuration File
 
@@ -98,13 +125,19 @@ Main Topic and Sub Topic are always classified according to the following list, 
   - Digital humanities
 
 
+<div id='section-id-101'/>
+
 ## Example of Usage
+
+<div id='section-id-103'/>
 
 ### Classifying a Single File
 
 ```
 gpt-file-organizer --input-path=/home/me/Documents/afile.pdf  --output-folder="/home/me/Documents/classified/"
 ```
+
+<div id='section-id-109'/>
 
 ### Classifying All Files in a Folder
 
@@ -113,6 +146,8 @@ To classify a whole folder, just use same command passing a folder instead of a 
 ```
 gpt-file-organizer --input-path=/home/me/Documents/pdfs/  --output-folder="/home/me/Documents/classified/"
 ```
+
+<div id='section-id-117'/>
 
 ### Example of Output File Structure
 
@@ -149,19 +184,27 @@ output_dir/
 │ ├── afile.pdf
 ```
 
-# Limitations
+<div id='section-id-152'/>
+
+## Limitations
 
 For some PDF files, the content may possibly not be extracted due to the quality of the scanned image or lacking of metadata. For those cases, the file will be sent to a `unclassified` folder within the output directory.
 
 Another case where files may not be classified is due to prompt response inaccuracy: depending on the model used and the number of tokens used to extract the content (see `maxNumTokens` in [config](#configuration-file)), the prompt api may not be able to classify the content.
 
-# Installation
+<div id='section-id-158'/>
+
+## Installation
 ```
 pip install gpt-pdf-organizer
 ```
-# Development
+<div id='section-id-162'/>
 
-## Prompt Customization
+## Development
+
+<div id='section-id-164'/>
+
+### Prompt Customization
 
 This step is optional and a default prompt is already tweaked to extract good results from ChatGpt API. If however, one wants to change the prompt, follow the steps bellow.
 
